@@ -1,7 +1,7 @@
 {
   "features": {
     "localMQTT": false,
-    "influxDB": false
+    "influxDB": true
   },
   "yoLink": {
     "apiv2": {
@@ -32,7 +32,7 @@
     "sensors": [
       {
         "type": "temperature_humidity",
-        "deviceId": "d88b4c0100012345",
+        "deviceId": "d88b4c0100072286",
         "name": "guest_bedroom",
         "measurement": "weather",
         "tagSet": "location=guest_bedroom",

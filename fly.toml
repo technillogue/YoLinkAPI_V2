@@ -1,0 +1,41 @@
+# fly.toml app configuration file generated for moist on 2023-10-11T00:24:04-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "moist"
+primary_region = "iad"
+
+[env]
+  GF_AUTH_ANONYMOUS_ENABLED = "true"
+  GF_INSTALL_PLUGINS = "grafana-worldmap-panel,grafana-clock-panel"
+
+[[mounts]]
+  source = "data"
+  destination = "/mount/data"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 3000 # grafana
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.tcp_checks]]
+    interval = "10s"
+    timeout = "2s"
+
+[[services]]
+  protocol = ""
+  internal_port = 8086 # influxdb
+
+  [[services.ports]]
+    port = 8086

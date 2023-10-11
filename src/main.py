@@ -11,8 +11,8 @@ from yolink_devices import YoLinkFactory
 from yolink_consumer import YoLinkConsumer, YoLinkApi
 from influxdb_interface import InfluxDbClient
 from yolink_mqtt_client import YoLinkMqttClient, MqttClient
-from logger import Logger
-log = Logger.getInstance().getLogger()
+logging.basicConfig(level="DEBUG", format="{levelname} {module}:{lineno}: {message}", style="{")
+log = logging.getLogger()
 
 Q_SIZE = 64
 
@@ -41,6 +41,7 @@ def configure_influxdb_devices(device_hash, config):
         config (map): Config hash map.
     """
     influxdb_info = config['influxdb']
+    log.info("InfluxDB Config: %s", influxdb_info)
     if len(influxdb_info['sensors']) == 0:
         log.debug("No sensors are configured for influx db")
         return
@@ -52,7 +53,10 @@ def configure_influxdb_devices(device_hash, config):
                 InfluxDbClient(config=influxdb_info,
                                measurement=sensor['measurement'],
                                tag_set=sensor['tagSet'])
+            log.info("Configuring InfluxDB for device %s: %s", device_id, client)
             device_hash[device_id].set_influxdb_client(client)
+        else:
+            log.error("Device %s is not in device hash", device_id)
 
 
 def configure_local_mqtt_server(device_hash, config):
@@ -93,11 +97,13 @@ def main(argv):
     yolinkv2_config = config['yoLink']['apiv2']
     localMqttEnabled = config['features']['localMQTT']
     influxDbEnabled = config['features']['influxDB']
+    ua_id = yolinkv2_config["uaId"] or os.getenv('UA_ID')
+    sec_id = yolinkv2_config["secId"] or os.getenv('SEC_ID')
 
     yolink_token = \
-        YoLinkToken(url=yolinkv2_config['tokenUrl'],
-                    ua_id=yolinkv2_config['uaId'],
-                    sec_id=yolinkv2_config['secId'])
+        YoLinkToken(url=yolinkv2_config["tokenUrl"],
+                    ua_id=ua_id,
+                    sec_id=sec_id)
     access_token = yolink_token.get_access_token()
     log.debug(access_token)
 
@@ -140,6 +146,7 @@ def main(argv):
 
     mqtt_topic = \
         yolinkv2_config['mqtt']['topic'].format(home_id)
+    log.info("listening to mqtt topic %s", mqtt_topic)
 
     yolink_mqtt_server = \
         YoLinkMqttClient(username=access_token,
